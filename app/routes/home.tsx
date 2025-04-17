@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import CleaningStatus from "~/cleaningStatus";
+import CleaningStatus from "~/components/cleaningStatus";
 
 export function meta({}: Route.MetaArgs) {
   return [

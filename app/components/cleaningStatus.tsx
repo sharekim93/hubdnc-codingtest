@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 
 // 청소 상태 ENUM
 const CLEANING_STATUS = {
