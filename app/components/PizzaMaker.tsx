@@ -1,55 +1,47 @@
 import React, { useState } from "react";
 
-interface Pizza {
-  id: number;
-  status: "ready" | "cooking" | "completed";
-}
-
 const PizzaMaker = () => {
   const totalPizzas = 100; // 총 피자 수
-  const [completedPizzas, setCompletedPizzas] = useState<Pizza[]>([]);
+  const [completedCount, setCompletedCount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [workerCount, setWorkerCount] = useState(5); // 알바생 수 (기본값 5명)
 
   // 피자 만들기 API 호출
-  const makePizza = async (id: number): Promise<Pizza> => {
+  const makePizza = async (): Promise<boolean> => {
     try {
       const response = await fetch("https://dough.pizza.com/makePizza", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ pizzaId: id }),
       });
 
       if (!response.ok) {
         throw new Error(`API 오류: ${response.status}`);
       }
 
-      // 피자에 대한 데이터가 있다면 처리
-      const data = await response.json();
-
-      return {
-        id,
-        status: "completed",
-      };
+      return true;
     } catch (error) {
       throw error;
     }
   };
 
-  // 피자를 그룹으로 처리하는 함수
-  const processPizzaGroup = async (pizzaIds: number[]) => {
-    const pizzaPromises = pizzaIds.map(async (pizzaId) => {
-      try {
-        const pizza = await makePizza(pizzaId);
-        setCompletedPizzas((prev) => [...prev, pizza]);
-        return pizza;
-      } catch (error) {
-        console.error(`피자 ID ${pizzaId} 처리 중 오류:`, error);
-        throw error;
-      }
-    });
+  // 피자 그룹 처리하는 함수
+  const processPizzaGroup = async (count: number) => {
+    const pizzaPromises = Array(count)
+      .fill(0)
+      .map(async () => {
+        try {
+          const success = await makePizza();
+          if (success) {
+            setCompletedCount((prev) => prev + 1);
+          }
+          return success;
+        } catch (error) {
+          console.error("피자 처리 중 오류:", error);
+          throw error;
+        }
+      });
 
     return Promise.all(pizzaPromises);
   };
@@ -57,21 +49,27 @@ const PizzaMaker = () => {
   // 그룹 단위로 피자 만들기 (모든 그룹을 병렬로 처리)
   const makeAllPizzas = async () => {
     setIsProcessing(true);
-    setCompletedPizzas([]);
-
-    // 모든 피자 ID 생성
-    const allPizzaIds = Array.from({ length: totalPizzas }, (_, i) => i + 1);
+    setCompletedCount(0);
 
     // 알바생 수에 따라 그룹 나누기
-    const pizzaGroups = [];
-    for (let i = 0; i < allPizzaIds.length; i += workerCount) {
-      pizzaGroups.push(allPizzaIds.slice(i, i + workerCount));
+    const groups = [];
+    const fullGroupCount = Math.floor(totalPizzas / workerCount);
+    const remainderGroup = totalPizzas % workerCount;
+
+    // 완전한 그룹 생성
+    for (let i = 0; i < fullGroupCount; i++) {
+      groups.push(workerCount);
+    }
+
+    // 나머지 피자가 있으면 추가 그룹 생성
+    if (remainderGroup > 0) {
+      groups.push(remainderGroup);
     }
 
     try {
       // 모든 그룹을 병렬로 처리
-      const groupPromises = pizzaGroups.map((group) =>
-        processPizzaGroup(group)
+      const groupPromises = groups.map((groupSize) =>
+        processPizzaGroup(groupSize)
       );
       await Promise.all(groupPromises);
     } catch (error) {
@@ -98,8 +96,8 @@ const PizzaMaker = () => {
             min="1"
             max="20"
             value={workerCount}
-            onChange={(e) =>
-              setWorkerCount(Math.max(1, parseInt(e.target.value) || 1))
+            onChange={
+              (e) => setWorkerCount(Math.max(1, parseInt(e.target.value) || 1)) // 최소 1
             }
             className="border border-gray-300 rounded px-3 py-1 w-20 text-center"
           />
@@ -128,8 +126,8 @@ const PizzaMaker = () => {
           <div className="font-medium">isProcessing:</div>
           <div>{isProcessing ? "true" : "false"}</div>
 
-          <div className="font-medium">completedPizzas.length:</div>
-          <div>{completedPizzas.length}</div>
+          <div className="font-medium">completedCount:</div>
+          <div>{completedCount}</div>
 
           <div className="font-medium">그룹 수:</div>
           <div>{Math.ceil(totalPizzas / workerCount)}</div>
