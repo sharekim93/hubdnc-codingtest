@@ -52,19 +52,15 @@ const PizzaMaker = () => {
     setCompletedCount(0);
 
     // 알바생 수에 따라 그룹 나누기
-    const groups = [];
-    const fullGroupCount = Math.floor(totalPizzas / workerCount);
-    const remainderGroup = totalPizzas % workerCount;
-
-    // 완전한 그룹 생성
-    for (let i = 0; i < fullGroupCount; i++) {
-      groups.push(workerCount);
-    }
-
-    // 나머지 피자가 있으면 추가 그룹 생성
-    if (remainderGroup > 0) {
-      groups.push(remainderGroup);
-    }
+    const groups = Array(Math.ceil(totalPizzas / workerCount))
+      .fill(0)
+      .map((_, index) => {
+        // 마지막 그룹은 나머지 피자만 포함
+        if (index === Math.floor(totalPizzas / workerCount)) {
+          return totalPizzas % workerCount || workerCount;
+        }
+        return workerCount;
+      });
 
     try {
       // 모든 그룹을 병렬로 처리
