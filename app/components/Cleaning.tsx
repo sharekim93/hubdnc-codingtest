@@ -7,7 +7,7 @@ const CLEANING_STATUS = {
   COMPLETED: "COMPLETED", // 완료
 };
 
-export default function CleaningStatus() {
+export default function Cleaning() {
   const [order, setOrder] = useState(false); // "청소해주세요" (주문)
   const [brush, setBrush] = useState(CLEANING_STATUS.READY); // "빗자루"
   const [mop, setMop] = useState(CLEANING_STATUS.READY); // "걸레"

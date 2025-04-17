@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import CleaningStatus from "~/components/cleaningStatus";
+import Cleaning from "~/components/Cleaning";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,5 +9,5 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <CleaningStatus />;
+  return <Cleaning />;
 }
